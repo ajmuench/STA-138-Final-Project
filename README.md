@@ -1,10 +1,7 @@
-# STA 138 Analysis of Cateogorical Data
-
-## Final Project
-
-This project uses the dataset Byssinosis.csv.
+# STA 138 Analysis of Cateogorical Data: Final Project
 
 ### Project Instructions
+This project uses the dataset Byssinosis.csv.
 
 In 1973, a large cotton textile company in North Carolina participated in a study to investigate the prevalence of byssinosis, a form of pneumoconiosis to which workers exposed to cotton dust are subject. Data was collected on 5,419 workers, including:
 
