@@ -1,0 +1,127 @@
+---
+title: "STA 138 Final Project"
+author: "Connor Young"
+date: "12/6/2023"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+### Load Data
+```{r}
+byss = read.csv("./Dataset/Byssinosis.csv")
+head(byss)
+```
+
+```{r}
+# change Workspace to factor
+byss$Workspace = factor(byss$Workspace, levels = c("3", "2", "1"))
+```
+
+```{r}
+# add Total column equal to Byssinosis + Non.Byssinosis
+byss$Total = byss$Byssinosis + byss$Non.Byssinosis
+```
+
+```{r}
+# remove rows which have no total
+byss = byss[byss$Total!=0,]
+```
+
+
+```{r}
+# unique values of each predictor variable
+sapply(byss[1:5], function(x) unique(x))
+```
+
+### Logistic Regression Models
+```{r}
+# all terms, no interactions
+glm1 = glm(cbind(Byssinosis, Non.Byssinosis)~Employment + Smoking + Sex + Race + Workspace,
+           family=binomial,
+           data=byss)
+summary(glm1)
+BIC(glm1)
+confint.default(glm1)
+```
+
+```{r}
+result1 = step(glm(cbind(Byssinosis, Non.Byssinosis)~1, binomial, byss),
+                  scope = ~Employment*Smoking*Sex*Race*Workspace,
+                  k=log(72),
+                  trace=0,
+                  direction="forward")
+summary(result1)
+BIC(result1)
+confint.default(result1)
+```
+
+
+#### Logistic Regression Diagnostics
+```{r}
+#glm1
+ry = residuals(glm1, type="deviance")
+rx = qlogis(fitted.values(glm1))
+
+plot(rx, ry,
+     xlab = "Fitted Log-Odds",
+     ylab = "Deviance Residual",
+     main = "glm1",
+     col = "black")
+lines(loess.smooth(rx, ry), col="red")
+abline(h=0, lty=2, col="grey")
+```
+
+
+```{r}
+#result1
+ry = residuals(result1, type="deviance")
+rx = qlogis(fitted.values(glm1))
+
+plot(rx, ry,
+     xlab = "Fitted Log-Odds",
+     ylab = "Deviance Residual",
+     main = "result1",
+     col = "black")
+lines(loess.smooth(rx, ry), col="red")
+abline(h=0, lty=2, col="grey")
+```
+
+
+### Poisson Regression
+```{r}
+# all terms, no interactions, no size adjustments
+glm2 = glm(Byssinosis~Employment + Smoking + Sex + Race + Workspace,
+           family=poisson,
+           data=byss)
+summary(glm2)
+BIC(glm2)
+confint.default(glm2)
+```
+
+
+```{r}
+# all terms, no interactions, w/ size adjustments
+glm3 = glm(Byssinosis~Employment + Smoking + Sex + Race + Workspace + offset(log(Total)),
+           family=poisson,
+           data=byss)
+summary(glm3)
+BIC(glm3)
+confint.default(glm3)
+```
+
+
+```{r}
+result2 = step(glm(Byssinosis~offset(log(Total)), poisson, byss),
+               scope = ~Employment*Smoking*Sex*Race*Workspace,
+               k=log(72),
+               trace=0,
+               direction="forward")
+summary(result2)
+BIC(result2)
+confint.default(result2)
+```
+
+
