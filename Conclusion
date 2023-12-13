@@ -1,0 +1,18 @@
+Conclusion:
+
+Select, fit and then interpret an appropriate statistical model.  
+
+For the project we made use of these following models: 
+
+Model 1 : logistic regression model with all additive terms 
+Model 2: forward stepwise logistic regression with all additive terms
+Model 3: the forward stepwise model with only additive terms of the statistically significant variables, 
+Model 4: the forward stepwise model with all the interaction terms of  the statistically significant variables and the previous model a modification to the employment term. This modification to the employment variable was to change employment to be from 10-19 years to be all employees with over 10 years or greater of employment.
+
+Of all these models, the Model 4 had the smallest AIC() and BIC(). AIC and BIC are measurements of goodness of fit of models that account for model complexity.  Having a lower AIC and BIC value would mean that the model would be a better fit comparatively to other models.  This would suggest that the Model 4 had the best fit.  We also conducted a likelihood ratio test between all pairings of the models with lowest AICs and BICS which were Models 2,3 and 4  From these tests we all had large p-values(respectively) between the three combinations of the LRT test which would mean that the simpler model is not significantly worse than more complex plots.  However, this does not mean that the simplest model is the best fit.  The model with all the interaction terms of the statistically significant variables with the employee modification had the best fit. Observing the diagnostic plot of model 4 shows that the deviance residuals are relatively equally distributed which would suggest that the model is a relatively good fit.  With the AICs, BICs, LRT and the diagnostic plots we conclude that model 4 is the best fit
+
+
+
+ Can you conclude in particular that workplace dustiness contributes to the chance of byssinosis? You will be graded on succinctly using valid statistical tools to uncover meaningful associations in the data and convincingly communicating them.
+
+Beginning from the model that best fits the data from above, we can look at the summary of the model.  This summary of the model would suggest that Workspace 1, Employment >=10 and SmokingYes all have positive and statistically significant effects on the chance of contracting byssinosis.  Using the Wald tests and the confidence intervals of the odds ratios for the variables, we see that all of these variables have statistically significant effects on the chance of contracting byssinosis.  Because Workspace 1, the most dusty workplace,  is among these statistically significant variables with a positive effect on the chance of contracting byssinosis, we conclude that Workplace dustiness positively contributes to the chance of byssinosis.  
