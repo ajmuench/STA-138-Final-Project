@@ -139,14 +139,10 @@ rx = qlogis(fitted.values(new2))
 plot(rx, ry,
      xlab = "Fitted Log-Odds",
      ylab = "Deviance Residual",
-     main = "Full Additive Model, No Interaction Terms",
+     main = "Forward Stepwise Regression w/ Variable Modifications",
      col = "black")
 lines(loess.smooth(rx, ry), col="red")
 abline(h=0, lty=2, col="grey")
 ```
 
-From the plot above, we see that the fitted smooth line is relatively straight and close to 0, with a peak around $(-5, 0.2)$ and the rest of the line at $d_i \approx -0.35$. It appears that at low log-odds, this model is  somewhat over-predicting, but at log-odds greater than around -4.5, this model is somewhat under-predicting. Overall, the deviance residuals appear to be relatively equally distributed and the vast majority of the residuals have an absolute value less than 1.5. Thus, we consider this model to be a relatively good fit.
-
-
-
-
+From the plot above, we see that the fitted smooth line is relatively straight (after log-odds of -4) and close to 0, with a peak at around $(-5, 0.8)$ and the rest of the line at $d_i \approx -0.35$. It appears that at low log-odds, this model is somewhat over-predicting, but at log-odds greater than around -4.75, this model is somewhat under-predicting. Overall, the deviance residuals appear to be relatively equally distributed above and below 0 (~37% and ~63% respectively), and ~95% of the residuals have an absolute value less than 1.5. Thus, we consider this model to be a relatively good fit.
