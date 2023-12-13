@@ -1,0 +1,75 @@
+---
+title: "sta 183 final project"
+author: "Michelle Tsang"
+date: "12/6/2023"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## set up data
+
+```{r}
+byss <- read.csv("Byssinosis.csv")
+byss$Workspace = factor(byss$Workspace, levels = c("3", "2", "1"))
+byss$Total = byss$Byssinosis + byss$Non.Byssinosis
+byss = byss[byss$Total!=0,]
+```
+
+
+### stepwise reg for log reg
+```{r}
+result1 = step(glm(cbind(Byssinosis, Non.Byssinosis)~1, binomial, byss),
+                  scope = ~Employment*Smoking*Sex*Race*Workspace,
+                  k=log(72),
+                  trace=0,
+                  direction="forward")
+summary(result1)
+BIC(result1)
+exp(confint.default(result1)) #take exp for CI of odds ratio (not log OR)
+```
+In order to see which predictors we should include in our regression to fit the best model, we will use forward stepwise selection. It will start with the empty model and continue adding predictor variables with the AIC as the selection criterion. The final model after using forward stepwise selection includes the following predictor variables: the intercept (the base case is if Workspace is rated a 3, the worker doesn't smoke, and was employed for less than 10 years), Workspace, Smoking, and Employment.
+
+We will use the Wald test to determine whether or not each variable from the stepwise model selection is significant with $H_0: \beta_{Workspace2} = 0, \beta_{Workspace1} = 0, ..., \beta_{Employment10-19} = 0$. When conducting the Wald test on the model using a 0.05 significance level, we are able to reject the null hypothesis and find that every variable is significant *except* for Workspace2 since its p-value of 0.499 is greater than 0.05. There is not enough evidence to conclude that there is a difference in the chance of getting byssinosis if the Workspace was rated a 3 or 2.
+
+We reach the same conclusion when we create a 95% confidence interval of the odds ratio for determining if there is an effect on that variable on the chances of getting byssinosis. Having an odds ratio of 1 means that variable is does not create a difference in the chances of getting byssinosis. In this case, only the Workspace2 variable contains 1 in its confidence interval of odds ratio (0.693, 2.119), so it is possible that there is no difference in the chance of getting byssinosis if the Workspace was rated a 3 or 2.  
+
+The odds ratio confidence intervals for the variables Workspace1, SmokingYes, Employment>=20, and Employment10-19 of (0.693, 2.119), (1.308, 2.783), (1.353, 2.762), and (1.017, 2.701) respectively, are all greater than 1, meaning having a Workspace rating of 1, being a smoker, being employed for more than 20 years, or being employed for 10-19 years increases the chance of having byssinosis. The intercept (base case of Workspace with rating of 3, no smoking, and being employed for less than 10 years) has an odds ratio confidence interval of (0.003, 0.008) is less than 1, meaning if the worker is the base case, they are less likely to have byssinosis.
+
+### testing for independence between workspace and byssinosis
+```{r}
+glm2 = glm(cbind(Byssinosis, Non.Byssinosis)~Workspace, binomial, byss)
+summary(glm2)
+```
+We will use the Wald test to test the independence between the categorical variable Workspace and the chance of getting byssinosis with $H_0: \beta_{Workspace2} = 0$ and $H_0: \beta_{Workspace1} = 0$ at 0.05 significance level. We find that both the intercept (when Workspace is rated a 3) and Workspace1 (Workspace rated a 3 vs 1) have a p-value approximately 0, so we have enough evidence to reject the null hypothesis and conclude that there is a relationship between the Workspace being rated a 3 or a 1 and the chance of having byssinosis. 
+
+However, the same can't be said for Workspace2 since its p-value of 0.588 is greater than 0.05. We fail to reject the null hypothesis, there is not enough evidence to say there is a relationship between Workspace being rated a 2 (vs rated a 3) and the chance of having byssinosis (Workspace2 is independent of having byssionsis).
+
+### CI for log odds
+```{r}
+exp(confint.default(glm2))
+```
+We reach the same conclusion when constructing a 95% confidence interval of the odds ratio for each variable. We are 95% confident that the odds ratio (OR) of the intercept (Workspace is rated a 3) and Workspace1 are between (0.008, 0.016) and (10.666, 22.436) respectively. Since OR = 1 is not in either of these interval, both these variables have a relationship on the chance on having byssinosis. Since the odds ratio interval of (0.008, 0.016) is less than 1, the chance of having byssinosis when Workspace is rated a 3 is less likely to occur. Conversely, the odds ratio interval of (10.666, 22.436) is greater than 1, so the chance of having byssinosis when Workspace is rated a 3 vs a rating of 1 is more likely to occur.
+
+We are 95% confident that the odds ratio interval of the Workspace2 is between (0.667, 2.038). Since OR = 1 is contained in the interval, it is possible that Workspace being rated a 2 (vs rated a 3) is independent from the chance of having byssinosis.
+
+### poisson reg
+```{r}
+result2 = step(glm(Byssinosis~offset(log(Total)), poisson, byss),
+               scope = ~Employment*Smoking*Sex*Race*Workspace,
+               k=log(72),
+               trace=0,
+               direction="forward")
+summary(result2)
+BIC(result2)
+exp(confint.default(result2))
+```
+In order to see which predictors we should include in our regression under a Poisson distribution to fit the best model, we will use forward stepwise selection. It will start with the empty model and continue adding predictor variables with the AIC as the selection criterion. The final model after using forward stepwise selection includes the following predictor variables: the intercept (the base case is if Workspace is rated a 3, the worker doesn't smoke, and was employed for less than 10 years), Workspace, Smoking, and Employment.
+
+We will use the Wald test to determine whether or not each variable from the stepwise model selection is significant with $H_0: \beta_{Workspace2} = 0, \beta_{Workspace1} = 0, ..., \beta_{Employment10-19} = 0$. When conducting the Wald test on the model using a 0.05 significance level, we are able to reject the null hypothesis and find that every variable is significant *except* for Workspace2 since its p-value of 0.511 and Employment10-19's p-value of 0.054 is greater than 0.05. There is not enough evidence to conclude that there is a difference in the chance of getting byssinosis if the Workspace was rated a 2 (vs a 3). There is also not enough evidence to conclude that there is a difference in the chance of getting byssinosis if the worker was employed for 10-19 years (vs employed for less than 10 years).
+
+We reach the same conclusion when we create a 95% confidence interval of the odds ratio for determining if there is an effect on that variable on the chances of getting byssinosis. In this case, only the Workspace2 and Employment10-19 variables contains 1 in its confidence interval of odds ratio (0.691, 2.096) and (0.991, 2.479) respectively. It is possible that there is no difference in the chance of getting byssinosis if the Workspace was rated a 2 (vs a 3). It is also possible that there is no difference in the chance of getting byssinosis if the worker was employed for 10-19 years (vs employed for less than 10 years).
+
+The odds ratio confidence intervals for the variables Workspace1, SmokingYes, and Employment>=20 of (8.968, 18.508), (1.249, 2.578), and (1.282, 2.507) respectively, are all greater than 1, meaning having a Workspace rating of 1, being a smoker, and/or being employed for more than 20 years increases the chance of having byssinosis. The intercept (base case of Workspace with rating of 3, no smoking, and being employed for less than 10 years) has an odds ratio confidence interval of (0.003, 0.009) is less than 1, meaning if the worker is the base case, they are less likely to have bysinosis.
