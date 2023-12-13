@@ -77,6 +77,7 @@ byss2$Workspace[byss2$Workspace == 2] = 3
 ```
 
 ```{r}
+# new stepwise w/ Workplace modification
 new1 = step(glm(cbind(Byssinosis, Non.Byssinosis)~1, binomial(), byss2),
                   scope = ~Employment*Smoking*Sex*Race*Workspace,
                   k=log(72),
@@ -95,6 +96,7 @@ byss2$Employment[byss2$Employment == "<10" | byss2$Employment == "10-19"] = "<20
 ```
 
 ```{r}
+# new stepwise w/ Employment modification
 new2 = step(glm(cbind(Byssinosis, Non.Byssinosis)~1, binomial(), byss2),
                   scope = ~Employment*Smoking*Sex*Race*Workspace,
                   k=log(72),
