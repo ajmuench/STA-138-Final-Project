@@ -55,21 +55,50 @@ We reach the same conclusion when constructing a 95% confidence interval of the 
 
 We are 95% confident that the odds ratio interval of the Workspace2 is between (0.667, 2.038). Since OR = 1 is contained in the interval, it is possible that Workspace being rated a 2 (vs rated a 3) is independent from the chance of having byssinosis.
 
-### poisson reg
+## variable modification
 ```{r}
-result2 = step(glm(Byssinosis~offset(log(Total)), poisson, byss),
-               scope = ~Employment*Smoking*Sex*Race*Workspace,
-               k=log(72),
-               trace=0,
-               direction="forward")
-summary(result2)
-BIC(result2)
-exp(confint.default(result2))
+# changing Workplace var
+# 2 & 3 -> 3 (less dusty)
+# 1 -> 1 (more dusty)
+byss2 = byss
+byss2$Workspace[byss2$Workspace == 2] = 3
 ```
-In order to see which predictors we should include in our regression under a Poisson distribution to fit the best model, we will use forward stepwise selection. It will start with the empty model and continue adding predictor variables with the AIC as the selection criterion. The final model after using forward stepwise selection includes the following predictor variables: the intercept (the base case is if Workspace is rated a 3, the worker doesn't smoke, and was employed for less than 10 years), Workspace, Smoking, and Employment.
 
-We will use the Wald test to determine whether or not each variable from the stepwise model selection is significant with $H_0: \beta_{Workspace2} = 0, \beta_{Workspace1} = 0, ..., \beta_{Employment10-19} = 0$. When conducting the Wald test on the model using a 0.05 significance level, we are able to reject the null hypothesis and find that every variable is significant *except* for Workspace2 since its p-value of 0.511 and Employment10-19's p-value of 0.054 is greater than 0.05. There is not enough evidence to conclude that there is a difference in the chance of getting byssinosis if the Workspace was rated a 2 (vs a 3). There is also not enough evidence to conclude that there is a difference in the chance of getting byssinosis if the worker was employed for 10-19 years (vs employed for less than 10 years).
 
-We reach the same conclusion when we create a 95% confidence interval of the odds ratio for determining if there is an effect on that variable on the chances of getting byssinosis. In this case, only the Workspace2 and Employment10-19 variables contains 1 in its confidence interval of odds ratio (0.691, 2.096) and (0.991, 2.479) respectively. It is possible that there is no difference in the chance of getting byssinosis if the Workspace was rated a 2 (vs a 3). It is also possible that there is no difference in the chance of getting byssinosis if the worker was employed for 10-19 years (vs employed for less than 10 years).
+```{r}
+# new stepwise with workplace modification
+new1 = step(glm(cbind(Byssinosis, Non.Byssinosis)~1, binomial(), byss2),
+                  scope = ~Employment*Smoking*Sex*Race*Workspace,
+                  k=log(72),
+                  trace=0,
+                  direction="forward")
+summary(new1)
+BIC(new1)
+exp(confint.default(new1))
+```
+After combining Workplace2 and Workplace 3 to be less dusty and Workplace1 to be more dusty, we conduct another Wald test on all our predictors after doing forward stepwise model selection using 0.05 significance level. The new model contains the intercept, Workspace1 (more dusty), SmokingYes, Employment>=20, and Employment10-19.
 
-The odds ratio confidence intervals for the variables Workspace1, SmokingYes, and Employment>=20 of (8.968, 18.508), (1.249, 2.578), and (1.282, 2.507) respectively, are all greater than 1, meaning having a Workspace rating of 1, being a smoker, and/or being employed for more than 20 years increases the chance of having byssinosis. The intercept (base case of Workspace with rating of 3, no smoking, and being employed for less than 10 years) has an odds ratio confidence interval of (0.003, 0.009) is less than 1, meaning if the worker is the base case, they are less likely to have bysinosis.
+The p-values for all the variables are less than 0.05, meaning we can reject the null hypothesis that and have sufficient evidence to conclude there is a difference between the variables listed above and the baseline case (workspace is less dusty, no smoking, and employment is less than 10 years) on the chance of having byssinosis. 
+
+The confidence intervals for the variables Workspace1, SmokingYes, Employment>=20, and Employment10-19 of (10.487, 20.456), (1.306, 2.778), (1.350, 2.755), and (1.012, 2.668) respectively, are have odds ratios greater than 1, meaning having a Workspace that is more dusty, being a smoker, being employed for more than 20 years, or being employed for 10-19 years increases the chance of having byssinosis. 
+
+```{r}
+# changing Employment var
+# 10-19 & >=20 -> >=10
+byss2$Employment[byss2$Employment == "10-19" | byss2$Employment == ">=20"] = ">=10"
+
+# new stepwise w/ Employment modification
+new2 = step(glm(cbind(Byssinosis, Non.Byssinosis)~1, binomial(), byss2),
+                  scope = ~Employment*Smoking*Sex*Race*Workspace,
+                  k=log(72),
+                  trace=0,
+                  direction="forward")
+summary(new2)
+BIC(new2)
+exp(confint.default(new2))
+```
+After combining Employment>20 and Employment10-19 to be being employed for more than 10 years and Employment<10 to be employed for less than 10 years, we conduct another Wald test on all our predictors after doing forward stepwise model selection using 0.05 significance level. The new model contains the intercept, Workspace1 (more dusty), SmokingYes, Employment>=10.
+
+The p-values for all the variables are less than 0.05, meaning we can reject the null hypothesis that and have sufficient evidence to conclude there is a difference between the variables listed above and the baseline case (workspace is less dusty, no smoking, and employment is less than 10 years) on the chance of having byssinosis. 
+
+The confidence intervals for the variables Workspace1, SmokingYes, and Employment>=10 of (10.474, 20.426), (1.296, 2.753), (1.324, 2.582) respectively, are have odds ratios greater than 1, meaning having a Workspace that is more dusty, being a smoker, being employed for more than 20 years, or being employed for 10-19 years increases the chance of having byssinosis. 
