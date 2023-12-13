@@ -91,8 +91,8 @@ confint.default(new1)
 
 ```{r}
 # changing Employment var
-# <10 & 10-19 -> <20
-byss2$Employment[byss2$Employment == "<10" | byss2$Employment == "10-19"] = "<20"
+# 10-19 & >=20 -> >=10
+byss2$Employment[byss2$Employment == "10-19" | byss2$Employment == ">=20"] = ">=10"
 ```
 
 ```{r}
@@ -119,7 +119,7 @@ The deviance residual, $d_i$, is based on deviance which is derived from a likel
 $$
 \begin{aligned}
   d_i &= \text{sign}(e_i)\sqrt{\text{Deviance}} \\
-  &= \text{sign}(e_i) \sqrt{-2 \left( y_i\log\hat{\pi_i} + (1-y_i)\log(1-\hat{\pi_i}) \right)}.
+  &= \text{sign}(e_i) \sqrt{-2 \left[ y_i\log\hat{\pi_i} + (1-y_i)\log(1-\hat{\pi_i}) \right]}.
 \end{aligned}
 $$
 
@@ -145,7 +145,7 @@ lines(loess.smooth(rx, ry), col="red")
 abline(h=0, lty=2, col="grey")
 ```
 
-From the plot above, we see that the fitted smooth line is relatively straight and close to 0, with a peak around $(-5, 0.2)$ and the rest of the line at $d_i \approx -0.35$. It appears that at low log-odds, this model is over-predicting, but at log-odds greater than around -4.5, this model is under-predicting. Overall, the deviance residuals appear to be relatively equally distributed and the vast majority of the residuals have an absolute value less than 0.5. Thus, we consider this model to be a relatively good fit.
+From the plot above, we see that the fitted smooth line is relatively straight and close to 0, with a peak around $(-5, 0.2)$ and the rest of the line at $d_i \approx -0.35$. It appears that at low log-odds, this model is  somewhat over-predicting, but at log-odds greater than around -4.5, this model is somewhat under-predicting. Overall, the deviance residuals appear to be relatively equally distributed and the vast majority of the residuals have an absolute value less than 1.5. Thus, we consider this model to be a relatively good fit.
 
 
 
