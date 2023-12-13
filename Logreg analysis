@@ -1,0 +1,5 @@
+The variables with that were statistically significant if the significance level less than 0.0001 are SmokingYes, Employment >=20, and Workspace 1.  The variables that were statistically significant if the significance level is 0.01 is employment 10-19.  
+
+SmokingYes, Employment >=20, and Workspace 1 have positive coefficients which would suggest that there as these variables increase so does the likelihood of having Byssonossis.  If we were to increase the significance level to 0.01 we could say the same of employment 10-19.  
+
+Based on the confidence intervals of the coefficients of these variables, these variables all have positive coefficients.  Which means that we are 95% confident for all three variables that they are positive relationships.
