@@ -30,7 +30,6 @@ byss$Total = byss$Byssinosis + byss$Non.Byssinosis
 byss = byss[byss$Total!=0,]
 ```
 
-
 ```{r}
 # unique values of each predictor variable
 sapply(byss[1:5], function(x) unique(x))
@@ -40,7 +39,7 @@ sapply(byss[1:5], function(x) unique(x))
 ```{r}
 # all terms, no interactions
 glm1 = glm(cbind(Byssinosis, Non.Byssinosis)~Employment + Smoking + Sex + Race + Workspace,
-           family=binomial,
+           family=binomial(),
            data=byss)
 summary(glm1)
 BIC(glm1)
@@ -48,7 +47,8 @@ confint.default(glm1)
 ```
 
 ```{r}
-result1 = step(glm(cbind(Byssinosis, Non.Byssinosis)~1, binomial, byss),
+# step-wise regression
+result1 = step(glm(cbind(Byssinosis, Non.Byssinosis)~1, binomial(), byss),
                   scope = ~Employment*Smoking*Sex*Race*Workspace,
                   k=log(72),
                   trace=0,
@@ -58,63 +58,95 @@ BIC(result1)
 confint.default(result1)
 ```
 
+#### Compare the Two Models w/ Likelihood Ratio Test
+```{r}
+# H_0: models are equivalent -> use simpler model
+# H_1: models are not equivalent -> use more complex model
+anv = anova(result1, glm1)
+pvalue = 1-pchisq(anv[2, 4], anv[2,3])
+pvalue
+```
+
+
 
 #### Logistic Regression Diagnostics
+
+To determine how well our models are fitting the data, we will look at their deviance residuals. A residual is a measure of the difference between an observed value and a predicted value. The most basic residual for our models is the raw difference between the observed value (Byssinosis status: $y_i \in \{0, 1\}$) and the predicted probability ($\hat{\pi_i} \in [0,1]$). This residual will be denoted as $e_i$ and has the form
+$$
+  e_i = y_i - \hat{\pi_i} \in [-1, 1].
+$$
+The deviance residual, $d_i$, is based on deviance which is derived from a likelihood ratio test comparing the fitted logistic model and a *saturated* model which fits each data point perfectly. The formula to calculate the deviance residuals is
+$$
+\begin{aligned}
+  d_i &= \text{sign}(e_i)\sqrt{\text{Deviance}} \\
+  &= \text{sign}(e_i) \sqrt{-2 \left( y_i\log\hat{\pi_i} + (1-y_i)\log(1-\hat{\pi_i}) \right)}.
+\end{aligned}
+$$
+
+The values of these deviance residuals measure how much the predicted probabilities from our model differ from the observed data and whether our model is under- or over-fitting for certain predictor variable values. 
+
+Large values for deviance residuals indicate poor fit and small values indicate good fit. A positive deviance residual indicates our model is under-predicting for a certain set of predictor variable values, i.e., the observed value is 1 and the predicted probability is less than 1. A negative deviance residual indicates our model is over-predicting for a certain set of predictor variable values, i.e., the observed value is 0 and the predicted probability is greater than 0.
+
+A good model fit is indicated by deviance residuals which are evenly distributed and relatively close to 0. Thus, if a smooth line is drawn to "average" the deviance residuals, we would like this line to be relatively flat and close to the line at $d_i=0$.
+
+The plots and interpretations of the deviance residuals for our two logistic regression models are shown below.
+
 ```{r}
-#glm1
+# glm1
 ry = residuals(glm1, type="deviance")
 rx = qlogis(fitted.values(glm1))
 
 plot(rx, ry,
      xlab = "Fitted Log-Odds",
      ylab = "Deviance Residual",
-     main = "glm1",
+     main = "Full Additive Model, No Interaction Terms",
      col = "black")
 lines(loess.smooth(rx, ry), col="red")
 abline(h=0, lty=2, col="grey")
 ```
 
+From the plot above, we see that the fitted smooth line is relatively straight and close to 0, with a peak around $(-5.4, 0.7)$ and the rest of the line at $d_i \approx -0.35$. It appears that at low log-odds, this model is over-predicting, but at log-odds greater than around -4.5, this model is under-predicting. Overall, the deviance residuals appear to be relatively equally distributed and the vast majority of the residuals have an absolute value less than 1.5. Thus, we consider this model to be a relatively good fit.
 
 ```{r}
-#result1
+# result1
 ry = residuals(result1, type="deviance")
 rx = qlogis(fitted.values(glm1))
 
 plot(rx, ry,
      xlab = "Fitted Log-Odds",
      ylab = "Deviance Residual",
-     main = "result1",
+     main = "Forward Step-Wise Regression Model",
      col = "black")
 lines(loess.smooth(rx, ry), col="red")
 abline(h=0, lty=2, col="grey")
 ```
 
+This plot is very similar to the plot for the additive model, so it results in similar interpretations. The fitted smooth line is relatively straight and close to 0, with a peak around $(-5.4, 0.6)$ and the rest of the line at $d_i \approx -0.35$. It appears that at low log-odds, this model is over-predicting, but at log-odds greater than around -4.5, this model is under-predicting. Overall, the deviance residuals appear to be relatively equally distributed and the vast majority of the residuals have an absolute value less than 1.5. Therefore, we also consider this model to be a relatively good fit.
 
 ### Poisson Regression
 ```{r}
 # all terms, no interactions, no size adjustments
 glm2 = glm(Byssinosis~Employment + Smoking + Sex + Race + Workspace,
-           family=poisson,
+           family=poisson(),
            data=byss)
 summary(glm2)
 BIC(glm2)
 confint.default(glm2)
 ```
 
-
 ```{r}
 # all terms, no interactions, w/ size adjustments
 glm3 = glm(Byssinosis~Employment + Smoking + Sex + Race + Workspace + offset(log(Total)),
-           family=poisson,
+           family=poisson(),
            data=byss)
 summary(glm3)
 BIC(glm3)
 confint.default(glm3)
 ```
 
-
 ```{r}
-result2 = step(glm(Byssinosis~offset(log(Total)), poisson, byss),
+# step-wise regression
+result2 = step(glm(Byssinosis~offset(log(Total)), poisson(), byss),
                scope = ~Employment*Smoking*Sex*Race*Workspace,
                k=log(72),
                trace=0,
@@ -123,5 +155,4 @@ summary(result2)
 BIC(result2)
 confint.default(result2)
 ```
-
 
